@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Remove Ansible and its dependencies.
-yum -C -y autoremove ansible
+yum -C -y remove ansible python-crypto python-paramiko python-markupsafe python-httplib2 sshpass python-setuptools python-crypto2 python-simplejson python-pyasn1 python-keyczar libyaml PyYAML python-six python-babel python-jinja2
 
 # Delete old kernels
 package-cleanup -C -y --oldkernels --count=1
