@@ -1,39 +1,46 @@
 {
   "variables": {
-    "rhn_username": "{{ env `RHN_USERNAME` }}",
-    "rhn_password": "{{ env `RHN_PASSWORD` }}"
+    "rhn_password": "{{ env `RHN_PASSWORD` }}",
+    "rhn_username": "{{ env `RHN_USERNAME` }}"
   },
   "provisioners": [
     {
-      "type": "shell",
       "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E '{{.Path}}'",
-      "inline": ["subscription-manager register --auto-attach --name=packer-rhel6-x86_64 --username={{ user `rhn_username` }} --password=\"{{ user `rhn_password` }}\""]
+      "inline": [
+        "subscription-manager register --auto-attach --name=packer-rhel6-x86_64 --username={{ user `rhn_username` }} --password=\"{{ user `rhn_password` }}\""
+      ],
+      "type": "shell"
     },
     {
-      "type": "shell",
-      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
-      "script": "scripts/install-ansible.sh"
-    },
-    {
-      "type": "ansible-local",
-      "extra_arguments": [ "-e \"rhn_username={{ user `rhn_username` }} rhn_password={{ user `rhn_password` }}\"  "],
-      "role_paths": [ "ansible/roles/packer-rhel" ],
-      "playbook_file": "ansible/provision.yml"
-    },
-    {
-      "type": "shell",
       "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E '{{.Path}}'",
-      "inline": [ "/sbin/reboot", "sleep 60"]
+      "inline": [ "/sbin/reboot" ],
+      "type": "shell",
+      "expect_disconnect": true
     },
     {
-      "type": "shell",
+      "pause_before": "30s",
+      "extra_arguments": [
+        "-e \"rhn_username={{ user `rhn_username` }} rhn_password={{ user `rhn_password` }}\"  "
+      ],
+      "playbook_file": "ansible/provision.yml",
+      "role_paths": [
+        "ansible/roles/packer-rhel"
+      ],
+      "type": "ansible-local"
+    },
+    {
+      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E '{{.Path}}'",
+      "inline": [ "/sbin/reboot" ],
+      "type": "shell"
+    },
+    {
       "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
-      "script": "scripts/cleanup.sh"
+      "script": "scripts/cleanup.sh",
+      "type": "shell"
     }
   ],
   "builders": [
     {
-      "type": "virtualbox-iso",
       "boot_command": [
         "<tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/kickstart.cfg<enter><wait>"
       ],
@@ -42,19 +49,30 @@
       "guest_os_type": "RedHat_64",
       "headless": true,
       "http_directory": "http",
-      "iso_url": "iso/rhel-server-6.9-x86_64-dvd.iso",
       "iso_checksum": "3f961576e9f81ea118566f73f98d7bdf3287671c35436a13787c1ffd5078cf8e",
       "iso_checksum_type": "sha256",
-      "ssh_username": "vagrant",
+      "iso_url": "iso/rhel-server-6.9-x86_64-dvd.iso",
+      "output_directory": "boxes",
+      "shutdown_command": "echo 'vagrant' | sudo -S shutdown -P now",
       "ssh_password": "vagrant",
       "ssh_timeout": "15m",
-      "shutdown_command": "echo 'vagrant' | sudo -S shutdown -P now",
-      "output_directory": "boxes",
-      "vm_name": "packer-rhel6-x86_64",
+      "ssh_username": "vagrant",
+      "type": "virtualbox-iso",
       "vboxmanage": [
-        [ "modifyvm", "{{ .Name }}", "--memory", "512" ],
-        [ "modifyvm", "{{ .Name }}", "--cpus", "1" ]
-      ]
+        [
+          "modifyvm",
+          "{{ .Name }}",
+          "--memory",
+          "512"
+        ],
+        [
+          "modifyvm",
+          "{{ .Name }}",
+          "--cpus",
+          "1"
+        ]
+      ],
+      "vm_name": "packer-rhel6-x86_64"
     }
   ],
   "post-processors": [
