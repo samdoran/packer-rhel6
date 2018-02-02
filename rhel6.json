@@ -1,42 +1,20 @@
 {
-  "variables": {
-    "rhn_password": "{{ env `RHN_PASSWORD` }}",
-    "rhn_username": "{{ env `RHN_USERNAME` }}"
-  },
   "provisioners": [
     {
-      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E '{{.Path}}'",
-      "inline": [
-        "subscription-manager register --auto-attach --name=packer-rhel6-x86_64 --username={{ user `rhn_username` }} --password=\"{{ user `rhn_password` }}\""
-      ],
-      "type": "shell"
+      "type": "ansible",
+      "playbook_file": "ansible/provision.yml"
     },
     {
+      "type": "shell",
       "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E '{{.Path}}'",
       "inline": [ "/sbin/reboot" ],
-      "type": "shell",
       "expect_disconnect": true
     },
     {
+      "type": "shell",
       "pause_before": "30s",
-      "extra_arguments": [
-        "-e \"rhn_username={{ user `rhn_username` }} rhn_password={{ user `rhn_password` }}\"  "
-      ],
-      "playbook_file": "ansible/provision.yml",
-      "role_paths": [
-        "ansible/roles/packer-rhel"
-      ],
-      "type": "ansible-local"
-    },
-    {
-      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E '{{.Path}}'",
-      "inline": [ "/sbin/reboot" ],
-      "type": "shell"
-    },
-    {
       "execute_command": "echo 'vagrant' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
-      "script": "scripts/cleanup.sh",
-      "type": "shell"
+      "script": "scripts/cleanup.sh"
     }
   ],
   "builders": [
