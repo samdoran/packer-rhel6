@@ -1,4 +1,9 @@
 {
+  "variables": {
+    "vagrant_cloud_token": "{{ env `VAGRANT_CLOUD_TOKEN` }}",
+    "version": "{{ env `VAGRANT_BOX_VERSION` }}",
+    "version_description": "{{ env `VAGRANT_BOX_DESCRIPTION` }}"
+  },
   "provisioners": [
     {
       "type": "ansible",
@@ -27,9 +32,9 @@
       "guest_os_type": "RedHat_64",
       "headless": true,
       "http_directory": "http",
-      "iso_checksum": "3f961576e9f81ea118566f73f98d7bdf3287671c35436a13787c1ffd5078cf8e",
+      "iso_checksum": "1e15f9202d2cdd4b2bdf9d6503a8543347f0cb8cc06ba9a0dfd2df4fdef5c727",
       "iso_checksum_type": "sha256",
-      "iso_url": "iso/rhel-server-6.9-x86_64-dvd.iso",
+      "iso_url": "iso/rhel-server-6.10-x86_64-dvd.iso",
       "output_directory": "boxes",
       "shutdown_command": "echo 'vagrant' | sudo -S shutdown -P now",
       "ssh_password": "vagrant",
@@ -54,9 +59,18 @@
     }
   ],
   "post-processors": [
-    {
-      "output": "builds/{{ .Provider }}-rhel6.box",
-      "type": "vagrant"
-    }
+    [
+      {
+        "output": "builds/{{ .Provider }}-rhel6.box",
+        "type": "vagrant"
+      },
+      {
+        "type": "vagrant-cloud",
+        "box_tag": "samdoran/rhel6",
+        "access_token": "{{ user `vagrant_cloud_token` }}",
+        "version": "{{ user `version` }}",
+        "version_description": "{{ user `version_description` }}"
+      }
+    ]
   ]
 }
